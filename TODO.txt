@@ -1,0 +1,5 @@
+Items needing investigation or implementation for PyProtocols 1.0
+
+ * implement the declaration API shortcut decorators/advisors
+
+

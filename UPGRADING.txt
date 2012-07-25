@@ -1,0 +1,32 @@
+Upgrading from older versions of PyProtocols
+
+ Due to some features added in PyProtocols 0.9.3, some programs may have
+ compatibility issues upon upgrading.  The changes affect only a handful of
+ features that are very infrequently used, so if you don't know what the
+ following features are, you have nothing to worry about:
+
+ * The 'protocol' attribute of 'Adapter' and 'StickyAdapter' objects was
+   deprecated in 0.9.3, and removed in 1.0a0.
+
+ * If you use the "ABC" (abstract base class) style of interfaces, you *must*
+   define an __init__ method in either the ABC itself, or in any of its
+   concrete subclasses that are to be instantiated.  If you do not, the
+   resulting behavior may not be as expected.
+
+ * The 'factory' argument to 'adapt()' has been deprecated and using it will
+   issue a 'DeprecationWarning'.
+
+ * Adapter factories are now only called with one argument: the object to
+   adapt.  For backward compatibility, any adapter factories that require
+   more than one argument are wrapped in a converter.  It's highly recommended
+   that you transition to one-argument adapters as soon as practical, since
+   using two-argument adapter factories is deprecated and will cause
+   deprecation warnings to appear on 'sys.stderr' at runtime.  (And, by version
+   1.1, support for two-argument adapters will be removed completely.)  This
+   change was made for symmetry with Zope and Twisted adapters, as well as
+   Pythonic adapter factories like 'int'.
+
+ * 'StickyAdapter' subclasses must define an 'attachForProtocols' attribute,
+   or they will stop working correctly.  See the reference manual
+   for details on the 'attachForProtocols' attribute.
+

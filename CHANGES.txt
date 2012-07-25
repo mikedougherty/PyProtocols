@@ -1,0 +1,148 @@
+Fixes and changes since PyProtocols 0.9.3
+
+ - Added support to make 'protocols.advise()' operate correctly in a doctest
+   or other 'exec' scenario.  'protocols.advice.getFrameInfo()' now returns
+   a 'kind' of '"class"' when in a class body being exec'd.
+
+ - There is a new 'protocols.advice.add_assignment_advisor' function that
+   allows you to implement PEP 318-like decorators in Python 2.2 and 2.3.
+   There is also a convenience function, 'as', that lets you use PEP 318-style
+   decorators directly.  (DOCS NEEDED)
+
+ - 'StickyAdapter' is now a one-argument adapter factory; as a result, the
+   'protocol' attribute is now completely gone, and you *must* use the
+   'attachForProtocols' attribute in order to get any actual "stickiness".
+   See the reference manual for details on the 'attachForProtocols' attribute.
+
+ - 'adapt()' no longer supports the 'factory' argument that was deprecated in
+   0.9.3.
+
+ - Using two-argument adapter factories now produces a DeprecationWarning;
+   please update your code, since support for them will be gone entirely in
+   version 1.1.
+
+
+Fixes and changes since PyProtocols 0.9.2
+
+ - Adapter factories are now only called with one argument: the object to
+   adapt.  For backward compatibility, any adapter factories that require
+   more than one argument are wrapped in a converter.  It's highly recommended
+   that you transition to one-argument adapters as soon as practical, since
+   using two-argument adapters will cause deprecation warnings in PyProtocols
+   version 1.0  (and causes PendingDeprecationWarnings in 0.9.3).  This change
+   was made for symmetry with Zope and Twisted adapters, as well as Pythonic
+   adapter factories like 'int' et al.
+
+   (Note that as a result of this change, 'Adapter' objects no longer have a
+   'protocol' attribute, and 'StickyAdapter' objects will also lose their
+   'protocol' attribute in 1.0.)
+
+ - The 'factory' parameter to 'adapt()' is DEPRECATED.  An informal survey of
+   PyProtocols' users indicated that nobody was using it to any significant
+   degree, and its removal was unopposed.  This feature was an extension to
+   PEP 246, so this brings PyProtocols into closer conformance with the PEP.
+   If you are currently using it, you will receive a 'DeprecationWarning', and
+   in PyProtocols 1.0 your code will break.
+
+ - Fixed 'protocols.sequenceOf()' being unable to directly imply a non-sequence
+   protocol.
+
+ - Raise 'AdaptationFailure' instead of 'NotImplementedError' when adaptation
+   is unsuccessful.  'AdaptationFailure' is a subclass of both 'TypeError' and
+   'NotImplementedError', so code written according to either PEP 246 or older
+   versions of PyProtocols will still catch the error.
+
+ - There is now an 'AbstractBase' class, similar to 'Interface', that can be
+   used for the "ABC" (Abstract Base Class) style of interface usage, where the
+   interface may contain implementation code, and can be subclassed to create
+   concrete implementations.  In previous versions, you could use 'Interface'
+   as such a base class, but now calling an 'Interface' object performs
+   adaptation rather than instantiation, unless the subclass redefines
+   '__init__'.
+
+ - 'Protocol' instances (except for 'AbstractBase' subclasses) are now callable
+   with a signature similar to 'adapt()'.  E.g. 'ISomething(foo,*args)' is
+   equivalent to 'adapt(foo,ISomething,*args)'.  This convenient API, pioneered
+   by Twisted and later adopted by Zope X3, is now available in PyProtocols as
+   well.  (Note that as a result of this change, the PyProtocols test suite now
+   requires a Zope X3 alpha release or better.)
+
+ - 'setup.py' now accepts a '--without-speedups' global option to disable
+   the C speedups module.
+
+ - We now support the latest 'adapter_hooks' protocol provided by Zope X3
+   interfaces, allowing multiple interface registry systems to participate
+   in Zope interfaces' '__adapt__()' implementation.
+
+ - Declaring an adapter from an instance to a protocol that was part
+   of a circular implication path resulted in infinite recursion.
+   Correcting the problem required a change in the return signature
+   of the 'declareProvides()' method in the 'IOpenProvider' interface.
+   Please see the docstring or the updated reference manual for details.
+   Thanks to Bob Ippolito for discovering the problem and bringing it to my
+   attention.
+
+ - Defining an adapter from one protocol to another, when that adapter does not
+   shorten the adaptation path, would produce a spurious 'KeyError'.
+
+Fixes since PyProtocols 0.9.1
+
+ - Fixed missing unit tests for 'Variation' class, and the two bugs in
+   'Variation' that weren't found because of the missing tests.
+
+Fixes and Enhancements since PyProtocols 0.9
+
+ - Added the 'factoryMethod' and 'equivalentProtocols' keywords to 'advise()'.
+
+ - Added 'sequenceOf()', allowing you to easily create a protocol
+   that represents a sequence of some base protocol, and automatically adapt
+   basic sequences (e.g. lists and tuples) to a "sequence of" the base
+   protocol, as long as all members of the input sequence can be adapted to the
+   base protocol.  By default, only lists and tuples are considered to support
+   'IBasicSequence'.
+
+ - Added 'protocolForType()' and 'protocolForURI()', that allow you
+   to link interfaces by intended semantics, not just by having identical
+   instances.  For example, you can use 'protocolForType(file,["read"])' to
+   symbolize a file-like object with a 'read()' method, or
+   'protocolForURI("some UUID")' to symbolize some documented interface.
+
+   In addition to compact declarations, this also allows a module to refer to
+   an interface without importing a specific definition of it.  Then, when that
+   module is used in a larger program, the linkage between the symbolic and
+   actual forms of the interface can be accomplished semi-automatically.
+
+ - Enhanced Zope 3 support: Now, adapters can be registered between Zope
+   interfaces, and any types or instances.  Note, however, that
+   interface-to-interface adaptation may not work if a class only declares what
+   it implements using the Zope interface API.  This limitation might be able
+   to be removed later.  Zope interfaces can now pass a much larger segment of
+   the test suite than before.
+
+ - Added 'protocols.Variation(baseProtocol,context=None)'; this
+   implements the 'LocalProtocol' example in the documentation.
+
+ - Added 'Adapter' and 'StickyAdapter' convenience base classes.  'Adapter'
+   offers a ready-made '__init__()' method suitable for most adapter
+   classes, while 'StickyAdapter' instances automatically declare themselves as
+   an instance-specific adapter for any object they're used on.  Thus, a
+   'StickyAdapter' can maintain its state across 'adapt()' calls for the same
+   object, so long as the object can have instance-specific adapters declared.
+   (See "Protocol Declarations for Individual Objects" in the reference manual
+   for more information on this.)
+
+ - Added experimental support for 'ExtensionClass'; previously, PyProtocols
+   could raise bizarre errors and/or behave strangely when 'adapt()' was called
+   on 'ExtensionClass' instances.
+
+ - Fixed some problems with the test suite when running under Python 2.3.
+   PyProtocols itself worked fine, but the test suite was bitten by two minor
+   semantic changes that took effect in 2.3, resulting in lots of error
+   messages about ModuleType needing a parameter, and a test failure for
+   'checkClassInfo' in the 'FrameInfoTest' test class.
+
+ - Fixed a memory leak in the C "speedups" module that leaked unbound
+   '__conform__' and '__adapt__' methods, as well as '__class__' and '__mro__'
+   references.  Also, fixed the C code potentially reraising invalid error
+   tracebacks under certain circumstances.
+
