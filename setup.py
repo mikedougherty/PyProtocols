@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 """Distutils setup file"""
-import ez_setup, sys
-ez_setup.use_setuptools()
+import sys
 from setuptools import setup, Feature, Extension, find_packages
 
 # Metadata
